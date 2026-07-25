@@ -1,0 +1,22 @@
+{
+  "name": "privacy-policy-infrastructure",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "synth": "cdk synth --strict",
+    "diff": "cdk diff",
+    "deploy:certificate": "cdk deploy PrivacyPolicyCertificate --require-approval never",
+    "deploy:service": "cdk deploy PrivacyPolicyService --require-approval never"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "aws-cdk": "2.1133.0",
+    "aws-cdk-lib": "2.262.1",
+    "constructs": "10.4.3",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}
