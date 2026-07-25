@@ -9,7 +9,7 @@ const serviceRegion = app.node.tryGetContext("serviceRegion") ?? "us-east-2";
 const certificateArn = app.node.tryGetContext("certificateArn");
 const lambdaZipPath = path.resolve(
   process.cwd(),
-  app.node.tryGetContext("lambdaZipPath") ?? "../.build/plugins/AWSLambdaBuilder/outputs/AWSLambdaBuilder/App/App.zip",
+  app.node.tryGetContext("lambdaZipPath") ?? "../.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/App/App.zip",
 );
 
 if (!account) {
