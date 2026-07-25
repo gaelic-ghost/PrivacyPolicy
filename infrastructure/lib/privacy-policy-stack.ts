@@ -4,6 +4,7 @@ import * as cdk from "aws-cdk-lib";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
@@ -106,6 +107,16 @@ export class PrivacyPolicyServiceStack extends cdk.Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         responseHeadersPolicy,
       },
+    });
+
+    // Lambda Function URLs created after October 2025 require both actions.
+    // FunctionUrlOrigin creates the InvokeFunctionUrl permission; this one
+    // permits the signed CloudFront OAC request to invoke the function itself.
+    policyFunction.addPermission("AllowCloudFrontInvokeFunction", {
+      action: "lambda:InvokeFunction",
+      principal: new iam.ServicePrincipal("cloudfront.amazonaws.com"),
+      sourceArn: distribution.distributionArn,
+      invokedViaFunctionUrl: true,
     });
 
     new cdk.CfnOutput(this, "PolicyUrl", { value: `https://${domainName}/tuneshare` });
