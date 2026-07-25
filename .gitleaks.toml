@@ -1,0 +1,10 @@
+title = "PrivacyPolicy Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Ignore generated local build and dependency directories"
+paths = [
+  '''(^|/)(?:\.build|\.swiftpm|node_modules|cdk\.out)/''',
+]

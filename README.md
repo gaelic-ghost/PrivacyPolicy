@@ -18,6 +18,16 @@ swift build
 swift test
 ```
 
+## Release checks
+
+Run the release gate before creating a public tag:
+
+```sh
+scripts/release-check.sh
+```
+
+It scans the complete Git history with [Gitleaks](https://github.com/gitleaks/gitleaks) in Docker, then scans tracked source and history for high-confidence secrets and sensitive PII (private keys, credentials, Social Security numbers, and payment-card numbers). It also runs the Swift tests and infrastructure type check. Use `scripts/release-check.sh --scan-only` for just the data scan.
+
 ## Deployment
 
 The CDK application in `infrastructure/` defines the Lambda, Function URL, CloudFront distribution, ACM certificate, and the Route 53 alias record. It intentionally does not manage Cloudflare DNS. Deploying the stack first creates an ACM DNS-validation record; add that record in Cloudflare, then let the CloudFront deployment complete.

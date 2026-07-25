@@ -4,13 +4,22 @@ on:
   push:
     branches:
     - main
-    paths:
-    - '**.swift'
-    - '**.yml'
+    tags:
+    - 'v*'
   pull_request:
   workflow_dispatch:
 
 jobs:
+  public-data-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout full Git history
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: Scan for secrets and sensitive PII
+      run: scripts/release-check.sh --scan-only
+
   linux:
     runs-on: ubuntu-latest
     strategy:
