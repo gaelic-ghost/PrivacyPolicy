@@ -23,6 +23,11 @@ fi
 
 cd "$project_dir"
 
+if [ -f .git ]; then
+  printf '%s\n' "Release checks do not run from a linked Git worktree because Docker cannot inspect that worktree's shared Git history reliably. Run this command from the primary checkout or let GitHub Actions run the authoritative release check." >&2
+  exit 2
+fi
+
 printf '%s\n' "Scanning Git history for secrets with Gitleaks…"
 docker run --rm \
   --volume "$project_dir:/repo:ro" \

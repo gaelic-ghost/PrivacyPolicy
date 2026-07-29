@@ -1,0 +1,88 @@
+name: Build Release Artifact
+
+on:
+  push:
+    tags:
+    - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: privacy-policy-release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the tagged release commit
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Set up the Swift toolchain for Lambda packaging
+      uses: swift-actions/setup-swift@65540b95f51493d65f5e59e97dcef9629ddf11bf
+      with:
+        swift-version: '6.3'
+
+    - name: Set up the Node runtime for CDK
+      uses: actions/setup-node@v6
+      with:
+        node-version: 24
+
+    - name: Enable the repository-pinned pnpm runtime
+      run: corepack enable
+
+    - name: Verify the tag is the current main commit
+      shell: bash
+      run: |
+        set -euo pipefail
+        tag_commit="$(git rev-list -n 1 "$GITHUB_REF_NAME")"
+        main_commit="$(git rev-parse origin/main)"
+        if [[ "$tag_commit" != "$main_commit" ]]; then
+          echo "Release tag $GITHUB_REF_NAME points to $tag_commit, but origin/main is $main_commit. Tags must be created from the current main commit." >&2
+          exit 1
+        fi
+
+    - name: Run authoritative release validation
+      run: scripts/release-check.sh
+
+    - name: Synthesize the certificate stack
+      run: pnpm --dir infrastructure exec cdk synth PrivacyPolicyCertificate --strict -c account=000000000000
+
+    - name: Package the Linux Lambda artifact
+      shell: bash
+      run: |
+        set -euo pipefail
+        scripts/package-lambda.sh
+        artifact_dir="$RUNNER_TEMP/privacy-policy-release"
+        artifact_name="privacy-policy-${GITHUB_REF_NAME}.zip"
+        mkdir -p "$artifact_dir"
+        cp .build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/App/App.zip "$artifact_dir/$artifact_name"
+        (
+          cd "$artifact_dir"
+          sha256sum "$artifact_name" > SHA256SUMS
+          {
+            printf 'release_tag=%s\n' "$GITHUB_REF_NAME"
+            printf 'revision=%s\n' "$GITHUB_SHA"
+            printf 'artifact=%s\n' "$artifact_name"
+            cat SHA256SUMS
+          } > release-evidence.txt
+        )
+
+    - name: Create or update the draft GitHub Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        artifact_dir="$RUNNER_TEMP/privacy-policy-release"
+        if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+          gh release create "$GITHUB_REF_NAME" --verify-tag --draft --title "PrivacyPolicy $GITHUB_REF_NAME" --generate-notes
+        fi
+        gh release upload "$GITHUB_REF_NAME" \
+          "$artifact_dir/"*.zip \
+          "$artifact_dir/SHA256SUMS" \
+          "$artifact_dir/release-evidence.txt" \
+          --clobber
