@@ -6,7 +6,7 @@ This is an engineering inventory for the public policy. It is not legal advice o
 
 ## Code-backed facts
 
-- The policy service serves its document at `GET /`; `/privacy` and `/tuneshare` permanently redirect to that canonical path.
+- The policy service serves the general public policy at `GET /`, the TuneShare-specific policy at `GET /tuneshare`, and a permanent general-policy alias at `GET /privacy`.
 - Its architecture is AWS Lambda Function URL behind CloudFront for `pp.galewilliams.com`. The Function URL uses AWS IAM authorization; CloudFront has origin access control.
 - The service does not define a database, account system, cookie mechanism, analytics integration, tracker, or request-payload logging. CloudFront standard logging is disabled. Its Lambda application log group is configured with seven-day retention.
 - The current galewilliams.com public-site source accepts name, email address, project type, timeline, and project details at its contact form.

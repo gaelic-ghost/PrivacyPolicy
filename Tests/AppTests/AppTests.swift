@@ -23,19 +23,31 @@ struct AppTests {
                 #expect(response.headers?["Content-Type"] == "text/html; charset=utf-8")
                 #expect(response.body?.contains("Privacy Policy") == true)
                 #expect(response.body?.contains("Contact and project-intake information") == true)
+                #expect(response.body?.contains("TuneShare Privacy Policy") == false)
                 #expect(response.body?.contains("mail@galewilliams.com") == true)
             }
         }
     }
 
     @Test
-    func redirectsStableAliasesToTheCanonicalRoute() async throws {
+    func servesTuneSharePrivacyPolicyAtItsStableRoute() async throws {
         let lambda = try await buildLambda(reader: reader)
         try await lambda.test() { client in
             try await client.execute(uri: "/tuneshare", method: .get) { response in
-                #expect(response.statusCode == .movedPermanently)
-                #expect(response.headers?["Location"] == "/")
+                #expect(response.statusCode == .ok)
+                #expect(response.headers?["Content-Type"] == "text/html; charset=utf-8")
+                #expect(response.body?.contains("TuneShare Privacy Policy") == true)
+                #expect(response.body?.contains("Music-link matching") == true)
+                #expect(response.body?.contains("Contact and project-intake information") == false)
+                #expect(response.body?.contains("mail@galewilliams.com") == true)
             }
+        }
+    }
+
+    @Test
+    func redirectsTheGeneralPrivacyAliasToTheCanonicalRoute() async throws {
+        let lambda = try await buildLambda(reader: reader)
+        try await lambda.test() { client in
             try await client.execute(uri: "/privacy", method: .get) { response in
                 #expect(response.statusCode == .movedPermanently)
                 #expect(response.headers?["Location"] == "/")

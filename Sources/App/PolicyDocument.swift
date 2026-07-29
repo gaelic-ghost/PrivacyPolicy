@@ -59,4 +59,60 @@ enum PolicyDocument {
     </body>
     </html>
     """#
+
+    static let tuneShareHTML = #"""
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="robots" content="index,follow">
+      <title>TuneShare Privacy Policy</title>
+      <style>
+        :root { color-scheme: light dark; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        body { max-width: 48rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; line-height: 1.6; }
+        h1, h2 { line-height: 1.2; }
+        h1 { margin-bottom: .2rem; }
+        .effective { color: #666; margin-top: 0; }
+        a { color: #6d28d9; }
+      </style>
+    </head>
+    <body>
+      <main>
+        <h1>TuneShare Privacy Policy</h1>
+        <p class="effective">Effective July 29, 2026</p>
+
+        <h2>Who we are</h2>
+        <p>TuneShare is provided by Gale W. This policy explains the implementation-backed information practices for its iPhone, iPad, Mac app, and share extension. It is not legal advice or a legal review.</p>
+
+        <h2>Music-link matching</h2>
+        <p>When you ask TuneShare to match a music link, the app sends the link you chose to provide, or track metadata needed to resolve it, to the TuneShare TokenBroker service. TokenBroker uses that information to return matching links from supported services: Apple Music, Spotify, YouTube, and YouTube Music.</p>
+        <p>TuneShare does not receive your music-service login credentials or access your music-service library, playlists, listening history, or account data. TokenBroker is designed to keep provider credentials on the server rather than in the app.</p>
+
+        <h2>Recent matches and iCloud</h2>
+        <p>TuneShare saves recent match history on your devices and synchronizes it through the private CloudKit database associated with your Apple account. This history can include source links, match candidates, track title, artist, provider links, artwork links, duration, and matching confidence. The app keeps the newest 200 records. You can clear this history in TuneShare.</p>
+        <p>Gale W does not operate or have access to your private CloudKit database. Apple processes CloudKit under its own privacy policy.</p>
+
+        <h2>Service security and anti-abuse records</h2>
+        <p>To protect TokenBroker, TuneShare sends an app-generated installation identifier, platform, bundle identifier, app version, and App Attest or DeviceCheck evidence. TokenBroker stores 120-second challenges, one-hour rate-limit records, and persistent App Attest registration records with anti-replay counters when App Attest is used. These records support security, fraud prevention, replay protection, and rate limiting.</p>
+        <p>TokenBroker application and authorizer log groups are configured with seven-day retention. The implementation avoids logging submitted music links, raw attestation or DeviceCheck evidence, provider credentials, and authorization tokens.</p>
+
+        <h2>Sharing</h2>
+        <p>To run matching, TokenBroker sends the submitted link or matching metadata to the relevant music-service provider. Recent-match history is synchronized with Apple CloudKit, and Apple validates App Attest or DeviceCheck evidence where that security path is used. The app source does not include a TuneShare account, music-service OAuth, advertising, marketing SDK, direct payment system, or independent crash-reporting service.</p>
+
+        <h2>Retention and deletion</h2>
+        <p>Recent-match history remains in your private CloudKit database until you clear it or remove it through your Apple account. Challenges and rate-limit records have the configured expiration windows described above. App Attest registration records do not have an automatic expiration path in the inspected implementation; you may request deletion of a security record associated with your installation by contacting us.</p>
+
+        <h2>Your choices and contact</h2>
+        <p>You can choose not to submit a link, clear recent matches in TuneShare, disable iCloud features through your Apple account settings, and control Apple’s optional diagnostic-sharing settings through your device settings. For privacy questions or a request to delete TokenBroker security records associated with your installation, email <a href="mailto:mail@galewilliams.com">mail@galewilliams.com</a>.</p>
+
+        <h2>Before an App Store submission</h2>
+        <p>The exact release archive, deployed TokenBroker retention settings, production logs, provider behavior, and any added analytics, crash reporting, advertising, payment, or SDK integrations must be rechecked before making App Store privacy disclosures. The implementation checklist for that review is maintained separately.</p>
+
+        <h2>Changes</h2>
+        <p>We may update this policy when TuneShare's data practices change. The current version is published at this address with its effective date.</p>
+      </main>
+    </body>
+    </html>
+    """#
 }

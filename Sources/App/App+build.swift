@@ -33,7 +33,7 @@ func buildRouter() throws -> Router<AppRequestContext> {
         Response.redirect(to: "/", type: .permanent)
     }
     router.get("/tuneshare") { _, _ in
-        Response.redirect(to: "/", type: .permanent)
+        PolicyResponse.html(PolicyDocument.tuneShareHTML)
     }
     return router
 }
