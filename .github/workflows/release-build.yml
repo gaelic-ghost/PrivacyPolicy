@@ -28,7 +28,9 @@ jobs:
         node-version: 24
 
     - name: Enable the repository-pinned pnpm runtime
-      run: corepack enable
+      run: |
+        corepack enable
+        corepack install --global pnpm@11.9.0
 
     - name: Verify the tag is the current main commit
       shell: bash
