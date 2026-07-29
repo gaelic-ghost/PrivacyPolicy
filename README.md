@@ -31,11 +31,11 @@ scripts/create-release-tag.sh vMAJOR.MINOR.PATCH
 
 The tag-triggered GitHub workflow verifies that the tag is the current `main` commit, runs the complete release gate in a clean checkout, packages the Linux Lambda ZIP, generates a SHA-256 checksum and revision evidence, and creates or updates a draft GitHub Release. Review the draft, then publish it to start the production deployment workflow.
 
-The production workflow uses the protected `production` environment, downloads the ZIP attached to the published release, verifies its checksum and evidence, runs `cdk diff`, deploys that exact ZIP, and checks both public policy routes. Re-running it with a prior published release tag is the rollback path; it cannot deploy a draft or an artifact built from a worktree.
+The production workflow uses the GitHub `production` environment, downloads the ZIP attached to the published release, verifies its checksum and evidence, runs `cdk diff`, deploys that exact ZIP, and checks both public policy routes. Re-running it with a prior published release tag is the rollback path; it cannot deploy a draft or an artifact built from a worktree.
 
 ### GitHub production setup
 
-Before publishing the first draft release, configure a protected GitHub `production` environment with the required reviewer policy and these environment secrets:
+Before publishing the first draft release, deploy `PrivacyPolicyDeployment`, then configure GitHub's `production` environment and these environment secrets. Add a required-reviewer rule there when a separate production approver is available.
 
 - `AWS_ROLE_TO_ASSUME` — the AWS IAM role trusted through GitHub Actions OpenID Connect for this repository's production deployment.
 - `PRIVACY_POLICY_CERTIFICATE_ARN` — the issued ACM certificate ARN for `pp.galewilliams.com` in `us-east-1`.

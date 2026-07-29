@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
 import * as path from "node:path";
-import { PrivacyPolicyCertificateStack, PrivacyPolicyServiceStack } from "../lib/privacy-policy-stack.js";
+import {
+  PrivacyPolicyCertificateStack,
+  PrivacyPolicyDeploymentStack,
+  PrivacyPolicyServiceStack,
+} from "../lib/privacy-policy-stack.js";
 
 const app = new cdk.App();
 const account = app.node.tryGetContext("account") ?? process.env.CDK_DEFAULT_ACCOUNT;
@@ -18,6 +22,11 @@ if (!account) {
 
 new PrivacyPolicyCertificateStack(app, "PrivacyPolicyCertificate", {
   env: { account, region: "us-east-1" },
+});
+
+new PrivacyPolicyDeploymentStack(app, "PrivacyPolicyDeployment", {
+  env: { account, region: serviceRegion },
+  serviceRegion,
 });
 
 if (certificateArn) {
