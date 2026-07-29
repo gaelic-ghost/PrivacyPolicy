@@ -27,13 +27,13 @@ func buildLambda(reader: ConfigReader) async throws -> FunctionURLLambdaFunction
 func buildRouter() throws -> Router<AppRequestContext> {
     let router = Router(context: AppRequestContext.self)
     router.get("/") { _, _ in
-        Response.redirect(to: "/tuneshare", type: .permanent)
+        PolicyResponse.html(PolicyDocument.publicHTML)
     }
     router.get("/privacy") { _, _ in
-        Response.redirect(to: "/tuneshare", type: .permanent)
+        Response.redirect(to: "/", type: .permanent)
     }
     router.get("/tuneshare") { _, _ in
-        PolicyResponse.html(PolicyDocument.tuneShareHTML)
+        Response.redirect(to: "/", type: .permanent)
     }
     return router
 }

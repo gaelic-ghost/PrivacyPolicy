@@ -1,13 +1,13 @@
 # Privacy Policy
 
-The public, single-purpose policy site for Gale W's apps.
+The public, single-purpose policy site for Gale W's website and related services.
 
-The canonical TuneShare policy URL is `https://pp.galewilliams.com/tuneshare`.
+The canonical policy URL is `https://pp.galewilliams.com/`.
 
 ## Routes
 
-- `GET /tuneshare` — TuneShare privacy policy
-- `GET /` and `GET /privacy` — permanent redirects to `/tuneshare`
+- `GET /` — canonical public privacy policy
+- `GET /privacy` and `GET /tuneshare` — permanent compatibility redirects to `/`
 
 The app is a Hummingbird Lambda Function URL origin. CloudFront provides the public custom domain and TLS; the Lambda URL is not intended as a public policy URL.
 
@@ -44,5 +44,7 @@ After Cloudflare validates the ACM certificate, build the Linux Lambda archive w
 pnpm --dir infrastructure exec cdk synth PrivacyPolicyService --strict \
   -c certificateArn=<issued-certificate-arn>
 ```
+
+Read [the publication facts and questions](docs/publication-facts-and-questions.md) before deploying this public policy. It records the source-grounded scope and the operational facts that Gale must confirm before publication.
 
 Read [the App Store privacy worksheet](docs/tuneshare-app-store-privacy.md) before publishing a TuneShare build. It is implementation-grounded, but must be rechecked whenever TuneShare or TokenBroker changes.

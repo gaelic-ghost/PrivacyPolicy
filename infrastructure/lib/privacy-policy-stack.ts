@@ -94,7 +94,6 @@ export class PrivacyPolicyServiceStack extends cdk.Stack {
     const distribution = new cloudfront.Distribution(this, "Distribution", {
       domainNames: [domainName],
       certificate,
-      defaultRootObject: "tuneshare",
       enableLogging: false,
       enableIpv6: true,
       minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
@@ -119,7 +118,7 @@ export class PrivacyPolicyServiceStack extends cdk.Stack {
       invokedViaFunctionUrl: true,
     });
 
-    new cdk.CfnOutput(this, "PolicyUrl", { value: `https://${domainName}/tuneshare` });
+    new cdk.CfnOutput(this, "PolicyUrl", { value: `https://${domainName}/` });
     new cdk.CfnOutput(this, "CloudFrontDomainName", { value: distribution.distributionDomainName });
     new cdk.CfnOutput(this, "CloudflareCname", {
       value: `${domainName} CNAME ${distribution.distributionDomainName}`,
