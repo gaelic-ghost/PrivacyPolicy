@@ -10,7 +10,17 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 
 const domainName = "pp.galewilliams.com";
-const githubRepository = "gaelic-ghost/PrivacyPolicy";
+const githubOwner = "gaelic-ghost";
+const githubOwnerID = "236288055";
+const githubRepository = "PrivacyPolicy";
+const githubRepositoryID = "1312371347";
+const githubProductionEnvironment = "production";
+
+// GitHub requires immutable owner and repository IDs in OIDC subjects for this
+// repository. Keep this exact production-only subject so a renamed or recreated
+// repository cannot inherit AWS deployment access.
+const githubProductionOIDCSubject =
+  `repo:${githubOwner}@${githubOwnerID}/${githubRepository}@${githubRepositoryID}:environment:${githubProductionEnvironment}`;
 
 interface PrivacyPolicyDeploymentStackProps extends cdk.StackProps {
   serviceRegion: string;
@@ -32,13 +42,13 @@ export class PrivacyPolicyDeploymentStack extends cdk.Stack {
       url: "https://token.actions.githubusercontent.com",
       clientIds: ["sts.amazonaws.com"],
     });
-    const githubActionsRole = new iam.Role(this, "GitHubActionsDeploymentRole", {
-      roleName: "privacy-policy-github-actions-deploy",
-      description: "Deploys published PrivacyPolicy GitHub Releases through the CDK bootstrap roles.",
+    const githubActionsRole = new iam.Role(this, "GitHubActionsDeploymentRoleV2", {
+      roleName: "privacy-policy-github-actions-deploy-v2",
+      description: "Deploys published PrivacyPolicy releases through the CDK bootstrap roles using GitHub's immutable repository identity.",
       assumedBy: new iam.WebIdentityPrincipal(provider.openIdConnectProviderArn, {
         StringEquals: {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": `repo:${githubRepository}:environment:production`,
+          "token.actions.githubusercontent.com:sub": githubProductionOIDCSubject,
         },
       }),
     });
