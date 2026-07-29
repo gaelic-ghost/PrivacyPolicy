@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "tsc --noEmit",
+    "test": "tsc --noEmit",
     "synth": "cdk synth --strict",
     "diff": "cdk diff",
     "deploy:certificate": "cdk deploy PrivacyPolicyCertificate --require-approval never",

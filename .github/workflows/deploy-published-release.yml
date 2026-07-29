@@ -1,0 +1,121 @@
+name: Deploy Published Release
+
+on:
+  release:
+    types:
+    - published
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Published PrivacyPolicy release tag to redeploy
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: privacy-policy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: production
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-2
+      RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
+    steps:
+    - name: Check out the release tag
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.release_tag || github.event.release.tag_name }}
+        fetch-depth: 0
+
+    - name: Set up the Node runtime for CDK
+      uses: actions/setup-node@v6
+      with:
+        node-version: 24
+
+    - name: Enable the repository-pinned pnpm runtime
+      run: corepack enable
+
+    - name: Verify the release is published and main-anchored
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [[ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" != "false" ]]; then
+          echo "Release $RELEASE_TAG is still a draft. Only published releases may deploy production." >&2
+          exit 1
+        fi
+        git fetch origin main --tags --force
+        tag_commit="$(git rev-list -n 1 "$RELEASE_TAG")"
+        if ! git merge-base --is-ancestor "$tag_commit" origin/main; then
+          echo "Release $RELEASE_TAG points to $tag_commit, which is not reachable from origin/main." >&2
+          exit 1
+        fi
+
+    - name: Download and verify the immutable release artifact
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        artifact_dir="$RUNNER_TEMP/privacy-policy-release"
+        artifact_name="privacy-policy-${RELEASE_TAG}.zip"
+        mkdir -p "$artifact_dir"
+        gh release download "$RELEASE_TAG" \
+          --pattern "$artifact_name" \
+          --pattern SHA256SUMS \
+          --pattern release-evidence.txt \
+          --dir "$artifact_dir"
+        (
+          cd "$artifact_dir"
+          sha256sum --check SHA256SUMS
+          grep -Fx "release_tag=$RELEASE_TAG" release-evidence.txt
+          grep -Fx "artifact=$artifact_name" release-evidence.txt
+        )
+        printf 'LAMBDA_ZIP_PATH=%s\n' "$artifact_dir/$artifact_name" >> "$GITHUB_ENV"
+
+    - name: Configure AWS credentials for the production environment
+      uses: aws-actions/configure-aws-credentials@v5
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Diff and deploy the verified release artifact
+      env:
+        CERTIFICATE_ARN: ${{ secrets.PRIVACY_POLICY_CERTIFICATE_ARN }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [[ -z "$CERTIFICATE_ARN" ]]; then
+          echo "Production deployment needs the PRIVACY_POLICY_CERTIFICATE_ARN environment secret before CDK can select the CloudFront certificate." >&2
+          exit 1
+        fi
+        aws_account_id="$(aws sts get-caller-identity --query Account --output text)"
+        pnpm --dir infrastructure install --frozen-lockfile
+        pnpm --dir infrastructure exec cdk diff PrivacyPolicyService --strict \
+          -c account="$aws_account_id" \
+          -c certificateArn="$CERTIFICATE_ARN" \
+          -c lambdaZipPath="$LAMBDA_ZIP_PATH"
+        pnpm --dir infrastructure exec cdk deploy PrivacyPolicyService --require-approval never \
+          -c account="$aws_account_id" \
+          -c certificateArn="$CERTIFICATE_ARN" \
+          -c lambdaZipPath="$LAMBDA_ZIP_PATH"
+
+    - name: Verify the deployed public routes
+      shell: bash
+      run: |
+        set -euo pipefail
+        policy_url="$(aws cloudformation describe-stacks --stack-name PrivacyPolicyService --query "Stacks[0].Outputs[?OutputKey==\`PolicyUrl\`].OutputValue" --output text)"
+        if [[ -z "$policy_url" || "$policy_url" == "None" ]]; then
+          echo "CloudFormation did not return the PolicyUrl output from PrivacyPolicyService, so the release health check cannot identify the public policy endpoint." >&2
+          exit 1
+        fi
+        curl --fail --show-error --retry 12 --retry-delay 10 "$policy_url"
+        curl --fail --show-error --retry 12 --retry-delay 10 "${policy_url%/}/tuneshare"
