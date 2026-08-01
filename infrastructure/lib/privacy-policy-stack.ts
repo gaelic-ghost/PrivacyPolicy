@@ -133,7 +133,7 @@ export class PrivacyPolicyServiceStack extends cdk.Stack {
       functionName: "privacy-policy",
       runtime: lambda.Runtime.PROVIDED_AL2023,
       handler: "bootstrap",
-      architecture: lambda.Architecture.ARM_64,
+      architecture: lambda.Architecture.X86_64,
       code: lambda.Code.fromAsset(zipPath),
       memorySize: 128,
       timeout: cdk.Duration.seconds(5),
